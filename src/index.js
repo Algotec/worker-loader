@@ -23,7 +23,7 @@ export default function loader() {}
 export function pitch(request) {
   const options = loaderUtils.getOptions(this) || {};
 
-  validateOptions({ name: 'Worker Loader', schema, target: options });
+  validateOptions({name: 'Worker Loader', schema, target: options});
 
   if (!this.webpack) {
     throw new WorkerLoaderError({
@@ -52,7 +52,10 @@ export function pitch(request) {
     chunkFilename: `[id].${filename}`,
     namedChunkFilename: null,
   };
-
+  let angularPlugin;
+  if (this._compilation._ngToolsWebpackPluginInstance) {
+    angularPlugin = this._compilation._ngToolsWebpackPluginInstance;
+  }
   worker.compiler = this._compilation.createChildCompiler(
     'worker',
     worker.options
@@ -73,6 +76,7 @@ export function pitch(request) {
   const subCache = `subcache ${__dirname} ${request}`;
 
   worker.compilation = (compilation) => {
+    compilation._ngToolsWebpackPluginInstance = angularPlugin;
     if (compilation.cache) {
       if (!compilation.cache[subCache]) {
         compilation.cache[subCache] = {};
@@ -83,7 +87,7 @@ export function pitch(request) {
   };
 
   if (worker.compiler.hooks) {
-    const plugin = { name: 'WorkerLoader' };
+    const plugin = {name: 'WorkerLoader'};
 
     worker.compiler.hooks.compilation.tap(plugin, worker.compilation);
   } else {
